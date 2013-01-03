@@ -1,11 +1,18 @@
+#! /usr/bin/env python
+
+#
+# This script is a quick and dirty one for cloning dbs
+#
+#
+
 import couchdb
 import pymongo, math, urllib2, json
 from multiprocessing import Process, Queue
 import sys, time
 
-couch_host = ""
+couch_host = "localhost"
 couch_port = 1234
-mongo_host = ""
+mongo_host = "localhost"
 mongo_port = 27017
 mongo_dbname = ""
 max_process = 8
