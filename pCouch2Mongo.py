@@ -43,10 +43,10 @@ def bulkReadCouchDocs(db, page, docset=True, pagesize=100):
 	ret = urllib2.urlopen(url).read()
 	return ret 
 
-def makeProcess():
+def makeProcess(n):
 	# forking paralle processes
 	jobq = Queue()
-	procs = [ Process(target=syncWorker, args=(jobq,)) for i in xrange(max_process) ]
+	procs = [ Process(target=syncWorker, args=(jobq,)) for i in xrange(n) ]
 	[ p.start() for p in procs ]
 
 	return q, procs
@@ -59,7 +59,7 @@ if __name__ == "__main__":
 	pdb = mong[mongo_dbname]
 
 	# make prallel processes
-	jobq, procs = makeProcess()
+	jobq, procs = makeProcess(max_process)
 
 	# push to processes
 	for dbname in store:
