@@ -3,7 +3,6 @@
 #
 # This script is a quick and dirty one for cloning dbs
 #
-#
 
 import couchdb
 import pymongo, math, urllib2, json
@@ -57,6 +56,8 @@ if __name__ == "__main__":
 	store = couchdb.Server("http://%s:%d" % (couch_host, couch_port))
 	mong  = pymongo.Connection(host=mongo_host, port=mongo_port)
 	pdb = mong[mongo_dbname]
+
+	# make prallel processes
 	jobq, procs = makeProcess()
 
 	# push to processes
@@ -65,10 +66,15 @@ if __name__ == "__main__":
 			continue
 
 		db = store[dbname]
+		# calculate the number of total pages with a fixed pagesize
 		totalpage = int(math.ceil(len(db) / float(pagesize)))
+
+		# clear the collection
 		pdb[dbname].remove()
 
 		print dbname, totalpage
+
+		# put dbname and page
 		for i in xrange(totalpage):
 			jobq.put( [dbname, i] )
 
