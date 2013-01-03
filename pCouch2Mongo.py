@@ -1,7 +1,8 @@
 #! /usr/bin/env python
 
 #
-# This script is a quick and dirty one for cloning dbs
+# This script is a quick and dirty one for cloning dbs from CouchDB to MongoDB
+# (This was used to do stress test for MongoDB.)
 #
 
 import couchdb
