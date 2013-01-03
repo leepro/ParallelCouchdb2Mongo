@@ -9,8 +9,6 @@ mongo_dbname = ""
 max_process = 8
 pagesize = 100
 
-#---------------------------------------------------------------------------------------------------------
-
 def worker(q):
 	p = pymongo.Connection()
 	pdb = p[mongo_dbname]
@@ -36,33 +34,36 @@ def bulkReadCouchDocs(db, page, docset=True, pagesize=100):
 	ret = urllib2.urlopen(url).read()
 	return ret 
 
-#---------------------------------------------------------------------------------------------------------
+def makeProcess():
+	# forking paralle processes
+	q = Queue()
+	procs = [ Process(target=worker, args=(q,)) for i in xrange(max_process) ]
+	[ p.start() for p in procs ]
 
-# prepare db handles
+	return q, procs
 
-store = couchdb.Server("http://%s:%d" % (couch_host, couch_port))
-mong  = pymongo.Connection()
-pdb = mong[mongo_dbname]
+if __name__ == "__main__":
+	# prepare db handles
 
-# forking paralle processes
-q = Queue()
-procs = [ Process(target=worker, args=(q,)) for i in xrange(max_process) ]
-[ p.start() for p in procs ]
+	store = couchdb.Server("http://%s:%d" % (couch_host, couch_port))
+	mong  = pymongo.Connection()
+	pdb = mong[mongo_dbname]
+	q, procs = makeProcess()
 
-# push to processes
-for dbname in store:
-	if dbname[0] == "_":
-		continue
+	# push to processes
+	for dbname in store:
+		if dbname[0] == "_":
+			continue
 
-	db = store[dbname]
-	totalpage = int(math.ceil(len(db) / float(pagesize)))
-	pdb[dbname].remove()
+		db = store[dbname]
+		totalpage = int(math.ceil(len(db) / float(pagesize)))
+		pdb[dbname].remove()
 
-	print dbname, totalpage
-	for i in xrange(totalpage):
-		q.put( [dbname, i] )
+		print dbname, totalpage
+		for i in xrange(totalpage):
+			q.put( [dbname, i] )
 
-# monitoring
-while True:
-	print >>sys.stderr, [ p.is_alive() for p in procs ]
-	time.sleep(1)
+	# monitoring
+	while True:
+		print >>sys.stderr, [ p.is_alive() for p in procs ]
+		time.sleep(1)
