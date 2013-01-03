@@ -5,16 +5,18 @@ import sys, time
 
 couch_host = ""
 couch_port = 1234
+mongo_host = ""
+mongo_port = 27017
 mongo_dbname = ""
 max_process = 8
 pagesize = 100
 
-def syncWorker(q):
-	p = pymongo.Connection()
-	pdb = p[mongo_dbname]
+def syncWorker(jobq):
+	mong  = pymongo.Connection(host=mongo_host, port=mongo_port)
+	pdb = mong[mongo_dbname]
 
 	while True:
-		dbname, i = q.get()
+		dbname, i = jobq.get()
 		pcol = pdb[dbname]
 	
 		print >>sys.stderr, dbname, i
@@ -46,7 +48,7 @@ if __name__ == "__main__":
 	# prepare db handles
 
 	store = couchdb.Server("http://%s:%d" % (couch_host, couch_port))
-	mong  = pymongo.Connection()
+	mong  = pymongo.Connection(host=mongo_host, port=mongo_port)
 	pdb = mong[mongo_dbname]
 	jobq, procs = makeProcess()
 
