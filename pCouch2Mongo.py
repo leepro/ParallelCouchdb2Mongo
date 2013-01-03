@@ -9,7 +9,7 @@ mongo_dbname = ""
 max_process = 8
 pagesize = 100
 
-def worker(q):
+def syncWorker(q):
 	p = pymongo.Connection()
 	pdb = p[mongo_dbname]
 
@@ -36,8 +36,8 @@ def bulkReadCouchDocs(db, page, docset=True, pagesize=100):
 
 def makeProcess():
 	# forking paralle processes
-	q = Queue()
-	procs = [ Process(target=worker, args=(q,)) for i in xrange(max_process) ]
+	jobq = Queue()
+	procs = [ Process(target=syncWorker, args=(jobq,)) for i in xrange(max_process) ]
 	[ p.start() for p in procs ]
 
 	return q, procs
@@ -48,7 +48,7 @@ if __name__ == "__main__":
 	store = couchdb.Server("http://%s:%d" % (couch_host, couch_port))
 	mong  = pymongo.Connection()
 	pdb = mong[mongo_dbname]
-	q, procs = makeProcess()
+	jobq, procs = makeProcess()
 
 	# push to processes
 	for dbname in store:
@@ -61,7 +61,7 @@ if __name__ == "__main__":
 
 		print dbname, totalpage
 		for i in xrange(totalpage):
-			q.put( [dbname, i] )
+			jobq.put( [dbname, i] )
 
 	# monitoring
 	while True:
