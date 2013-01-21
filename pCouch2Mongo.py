@@ -24,6 +24,9 @@ def syncWorker(jobq):
 
 	while True:
 		dbname, i = jobq.get()
+		if dbname = "END":
+			return
+
 		pcol = pdb[dbname]
 	
 		print >>sys.stderr, dbname, i
@@ -78,6 +81,9 @@ if __name__ == "__main__":
 		# put dbname and page
 		for i in xrange(totalpage):
 			jobq.put( [dbname, i] )
+
+	# signal all processes
+	[ jobq.put([ "END", None ]) for i in xrange(max_process) ]
 
 	# monitoring
 	while True:
